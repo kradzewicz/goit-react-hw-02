@@ -13,6 +13,7 @@ function App() {
     neutral: 0,
     bad: 0,
   };
+
   const [count, setCount] = useState(() => {
     const startCount = JSON.parse(localStorage.getItem("feedback"));
     return startCount && typeof startCount === "object" && "good" in startCount
@@ -27,12 +28,10 @@ function App() {
     return true;
   });
 
-  const { good, neutral, bad } = count;
-
   const onButtonClick = (option) => {
     setCount((prev) => ({
       ...prev,
-      [option]: ~~prev[option] + 1,
+      [option]: (prev[option] || 0) + 1,
     }));
     setStatSwitch(true);
   };
@@ -47,7 +46,10 @@ function App() {
     localStorage.setItem("feedback", JSON.stringify(initialState));
   };
 
+  const { good, neutral, bad } = count;
+
   const total = good + neutral + bad;
+
   const positiveFeedback = total
     ? Math.round(((count.good + count.neutral) / total) * 100)
     : 0;
