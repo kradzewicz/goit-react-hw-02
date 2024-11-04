@@ -1,35 +1,78 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+/** @format */
+
+import { useState, useEffect } from "react";
+import "./App.css";
+import { Description } from "./components/Description";
+import { OptionButtons } from "./components/Options";
+import { Feedback } from "./components/Feedback";
+import { Notification } from "./components/Notification";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const initialState = {
+    good: 0,
+    neutral: 0,
+    bad: 0,
+  };
+  const [count, setCount] = useState(() => {
+    const startCount = JSON.parse(localStorage.getItem("feedback"));
+    return startCount && typeof startCount === "object" && "good" in startCount
+      ? startCount
+      : initialState;
+  });
+
+  const [statSwitch, setStatSwitch] = useState(() => {
+    if (localStorage.getItem("feedback") === JSON.stringify(initialState)) {
+      return false;
+    }
+    return true;
+  });
+
+  const { good, neutral, bad } = count;
+
+  const onButtonClick = (option) => {
+    setCount((prev) => ({
+      ...prev,
+      [option]: ~~prev[option] + 1,
+    }));
+    setStatSwitch(true);
+  };
+
+  useEffect(() => {
+    localStorage.setItem("feedback", JSON.stringify(count));
+  }, [count]);
+
+  const onResetClick = () => {
+    setCount(initialState);
+    setStatSwitch(false);
+    localStorage.setItem("feedback", JSON.stringify(initialState));
+  };
+
+  const total = good + neutral + bad;
+  const positiveFeedback = total
+    ? Math.round(((count.good + count.neutral) / total) * 100)
+    : 0;
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <Description />
+      <OptionButtons
+        options={Object.keys(initialState)}
+        onButtonClick={onButtonClick}
+        onResetClick={onResetClick}
+      />
+      {statSwitch ? (
+        <Feedback
+          good={good}
+          neutral={neutral}
+          bad={bad}
+          total={total}
+          positive={positiveFeedback}
+        />
+      ) : (
+        <Notification message="No feedback yet" />
+      )}
     </>
-  )
+  );
 }
 
-export default App
+export default App;
