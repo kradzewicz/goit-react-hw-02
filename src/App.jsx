@@ -24,8 +24,10 @@ function App() {
   const [statSwitch, setStatSwitch] = useState(() => {
     if (localStorage.getItem("feedback") === JSON.stringify(initialState)) {
       return false;
+    } else if (localStorage.getItem("feedback") !== null) {
+      return true;
     }
-    return true;
+    return false;
   });
 
   const onButtonClick = (option) => {
